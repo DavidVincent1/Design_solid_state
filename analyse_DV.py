@@ -55,6 +55,7 @@ fft_data = [np.fft.fft2(i) for i in cropped_data]  # fft
 fft_shifted = [np.fft.fftshift(i) for i in fft_data]  # fréquence ramené à > 0
 fft_magnitude = [np.log(np.abs(i) + 1) for i in fft_shifted]  # log pour un meilleur contraste 
 fft_magnitude_uint = [(i / i.max() * 255).astype(np.uint8) for i in fft_magnitude]  # conversion en uint8 pour cv2
+#fft_magnitude_uint = cv2.normalize(fft_magnitude[0], None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
 
 # Threshold binaire pour isoler les pics
 _, thresh_8 = cv2.threshold(fft_magnitude_uint[0], 200, 255, cv2.THRESH_BINARY)
