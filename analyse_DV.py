@@ -3,10 +3,15 @@ import tifffile as tf
 import matplotlib.pyplot as plt
 from scipy.spatial import ConvexHull
 import cv2
+from matplotlib_scalebar.scalebar import ScaleBar
+import matplotlib.patches as patches
 
 
-# Facteur de conversion pixel à pm
-scale_pm_per_pixel = 42.468e-12
+# Facteur de conversion pixel à m
+scale_pm_per_pixel = 42.468
+nb_pix_scalebar = 20
+scale_five_pixels = scale_pm_per_pixel*nb_pix_scalebar
+bar_height = 2  # Hauteur de la scale bar en pixels
 
 # Lire les images
 data_8 = tf.imread(f'Micrographies_par_équipe\Micrographie_8.tif')
@@ -76,7 +81,6 @@ for i in range(len(thresh)):
     # Calcul des distances des pics par rapport au pic central
     distances_pixel = [np.sqrt((x - center_x)**2 + (y - center_x)**2) for x, y in peak_position]
     distances_pixels.append(distances_pixel)
-print(distances_pixels)
 
 
 # array
@@ -121,4 +125,17 @@ for i in range(len(peak_positions[2])):
     ax[2,2].scatter(peak_positions[2][i][0], peak_positions[2][i][1], color='r', s=3)
 ax[2,2].scatter(central_peaks[2][0], central_peaks[2][1], color='black', s=3)
 
+fig, ax = plt.subplots(1,3) # Juste les treillis zoomés
+nb_pix_side = 50
+for i in range(len(cropped_data)):
+    ax[i].imshow(cropped_data[i][25:nb_pix_side+25, 25:nb_pix_side+25])
+    bar_x = 25 # Position X de la barre
+    bar_y = cropped_data[i][25:nb_pix_side+25, 25:nb_pix_side+25].shape[0]-5  # Position Y (bas de l'image)
+    
+    scale_bar = patches.Rectangle((bar_x, bar_y), nb_pix_scalebar, bar_height, color='white', linewidth=0)
+    ax[i].add_patch(scale_bar)
+
+    # Ajout du texte de la scale bar
+    ax[i].text(bar_x + nb_pix_scalebar / 2, bar_y - 3, f'{scale_five_pixels:.2f} pm', 
+               color='white', ha='center', fontsize=10)
 plt.show()
