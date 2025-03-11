@@ -128,13 +128,19 @@ ax[2,2].scatter(central_peaks[2][0], central_peaks[2][1], color='black', s=3)
 fig, ax = plt.subplots(1,3) # Juste les treillis zoomés
 nb_pix_side = 50
 for i in range(len(cropped_data)):
-    ax[i].imshow(cropped_data[i][25:nb_pix_side+25, 25:nb_pix_side+25])
-    bar_x = 25 # Position X de la barre
-    bar_y = cropped_data[i][25:nb_pix_side+25, 25:nb_pix_side+25].shape[0]-5  # Position Y (bas de l'image)
+    if i == 2:
+        ax[i].imshow(cropped_data[i][50:100+50, 50:100+50])
+        bar_x = 60
+    else:
+        ax[i].imshow(cropped_data[i][25:nb_pix_side+25, 25:nb_pix_side+25])
+        bar_x = 25 # Position X de la barre
+    if i == 2:
+        bar_y = cropped_data[i][50:100+50, 50:100+50].shape[0]-5  # Position Y (bas de l'image)
+    else:
+        bar_y = cropped_data[i][25:nb_pix_side+25, 25:nb_pix_side+25].shape[0]-5  # Position Y (bas de l'image)
     
     scale_bar = patches.Rectangle((bar_x, bar_y), nb_pix_scalebar, bar_height, color='white', linewidth=0)
     ax[i].add_patch(scale_bar)
-
     # Ajout du texte de la scale bar
     ax[i].text(bar_x + nb_pix_scalebar / 2, bar_y - 3, f'{scale_five_pixels:.2f} pm', 
                color='white', ha='center', fontsize=10)
