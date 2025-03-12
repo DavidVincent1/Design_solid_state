@@ -15,6 +15,7 @@ SCALE = 42.468 # pm/pixel
 nb_pix_scalebar = 200
 scale_five_pixels = SCALE/nb_pix_scalebar
 bar_height = 20  # Hauteur de la scale bar en pixels
+image_length = 1024
 
 
 def find_dhkl(image_number, if_plot=True, thresh=0.01):
@@ -45,11 +46,22 @@ def find_dhkl(image_number, if_plot=True, thresh=0.01):
         #ax2.plot(peaks[:,1],peaks[:,0],"o", color="red")
         plt.show()
     sigma_px = 1 # incertitude sur la position des pics
-    d_hkl = 1 / distances_px  * SCALE # Conversion en mètres
-    sigma_d_hkl = d_hkl*sigma_px/distances_px # Propagation de l'incertitude
+    index_mauvais = []
+    #print(distances_px)
+    for i in range(len(distances_px)):
+        for j in range(len(distances_px)):
+            if distances_px[j] != 0 and distances_px[i] > distances_px[j]:
+                if np.abs(distances_px[i]-distances_px[j]) > 10:
+                    if (distances_px[i] % distances_px[j]) < 10 or abs(distances_px[i] % distances_px[j]-distances_px[j]) < 10:
+                        index_mauvais.append(i)
+    distances_px_modif = np.delete(distances_px, index_mauvais)
+    #print(distances_px_modif)
+    d_hkl = 1 / (distances_px_modif/(SCALE * image_length)) # Conversion en mètres
+    #print(distances_px)
+    sigma_d_hkl = d_hkl*sigma_px/distances_px_modif # Propagation de l'incertitude
     return d_hkl, sigma_d_hkl
 
-def split_d_hkl(d_hkl, sigma_d_hkl, threshold=0.02):
+def split_d_hkl(d_hkl, sigma_d_hkl, threshold=0.05):
     d_hkl = d_hkl[1:]
     sigma_d_hkl = sigma_d_hkl[1:]
     families = []
@@ -63,7 +75,10 @@ def split_d_hkl(d_hkl, sigma_d_hkl, threshold=0.02):
                         families[k].append(d_hkl[i])
                         families_std[k].append(sigma_d_hkl[i])
                         added = True
-                    elif (not added) and (k == len(families)-1):
+                    #elif np.abs(d_hkl[i] % np.mean(families[k])) < 50:
+                    #    print("Multiple entier")
+                    #    added = True
+                    elif k == len(families)-1:
                         families.append([d_hkl[i]])
                         families_std.append([sigma_d_hkl[i]])
                         added = True
@@ -74,9 +89,12 @@ def split_d_hkl(d_hkl, sigma_d_hkl, threshold=0.02):
 
 for i in range(8,11): # trois images qu'on va utiliser
     if i == 9:
-        d_hkl, sigma_d_hkl = find_dhkl(i, thresh=0.03)
+        d_hkl, sigma_d_hkl = find_dhkl(i, thresh=0.005)
+        #print(d_hkl)
+    elif i == 10:
+        d_hkl, sigma_d_hkl = find_dhkl(i, thresh=0.002)
     else:
-        d_hkl, sigma_d_hkl = find_dhkl(i)
+        d_hkl, sigma_d_hkl = find_dhkl(i, thresh=0.003)
     famille, famille_std = split_d_hkl(d_hkl, sigma_d_hkl)
     for j, d in enumerate(famille):
         print(f"Famille {j+1}: d_hkl = {d[0]:.3e} +/- {famille_std[j][0]:.3e} m")
