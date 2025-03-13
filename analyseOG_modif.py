@@ -58,7 +58,9 @@ def find_dhkl(image_number, if_plot=True, thresh=0.01):
     #print(distances_px_modif)
     d_hkl = 1 / (distances_px_modif/(SCALE * image_length)) # Conversion en mètres
     #print(distances_px)
-    sigma_d_hkl = d_hkl*sigma_px/distances_px_modif # Propagation de l'incertitude
+    #sigma_d_hkl = d_hkl*sigma_px/distances_px_modif # Propagation de l'incertitude
+    sigma_d_hkl = (1024*sigma_px*SCALE)/distances_px_modif**2
+    #print(sigma_d_hkl)
     return d_hkl, sigma_d_hkl
 
 def split_d_hkl(d_hkl, sigma_d_hkl, threshold=0.05):
@@ -95,6 +97,13 @@ for i in range(8,11): # trois images qu'on va utiliser
         d_hkl, sigma_d_hkl = find_dhkl(i, thresh=0.002)
     else:
         d_hkl, sigma_d_hkl = find_dhkl(i, thresh=0.003)
+        #print(d_hkl)
     famille, famille_std = split_d_hkl(d_hkl, sigma_d_hkl)
+    #print(np.mean(famille[0]))
+    #print(famille_std)
     for j, d in enumerate(famille):
-        print(f"Famille {j+1}: d_hkl = {d[0]:.3e} +/- {famille_std[j][0]:.3e} m")
+        #print(np.array(famille_std[j]))
+        #print(np.array(famille_std[j])**2)
+        #print(np.sum(np.array(famille_std[j])**2))
+        #print((1/(len(np.array(famille_std[j]))-1))*np.sqrt(np.sum(np.array(famille_std[j])**2)))
+        print(f"Famille {j+1}: d_hkl = {np.mean(d):.3e} +/- {np.std(d)+ (1/(len(np.array(famille_std[j]))-1))*np.sqrt(np.sum(np.array(famille_std[j])**2)):.3e} m")
